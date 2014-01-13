@@ -1,35 +1,57 @@
 #!/usr/bin/env python
-import os
-import sys
-import urlparse
 
+import argparse
 import boto
-import xml.dom.minidom
-from boto.ec2.connection import EC2Connection
-from boto.ec2.regioninfo import RegionInfo
+import sys
+import os
 from xml.dom.minidom import parseString
-from StringIO import StringIO
 
-if not boto.config.has_section("Boto"):
-    boto.config.add_section("Boto")
+def _response_prettyprint(string):
+	return parseString(string).toprettyxml()
 
-boto.config.set("Boto", "num_retries", "0")
+def configure_boto():
+	""" Configure boto runtime for CROC Cloud"""
+	
+	if not boto.config.has_section("Boto"):
+		boto.config.add_section("Boto")
+	boto.config.set("Boto", "is_secure", "True")
+	boto.config.set("Boto", "num_retries", "0")
+	boto.config.set("Boto", "https_validate_certificates", "True")
+	if not boto.config.has_section("Credentials"):
+		boto.config.add_section("Credentials")
+	boto.config.set("Credentials", "aws_access_key_id", os.environ["EC2_ACCESS_KEY"])
+	boto.config.set("Credentials", "aws_secret_access_key", os.environ["EC2_SECRET_KEY"])
 
-scheme, netloc, path, params, query, fragment = urlparse.urlparse(os.environ['EC2_URL'])
-host, port, rest = (netloc + "::").split(":", 2)
-conn = EC2Connection(
-        is_secure=(scheme == 'https'),
-        region=RegionInfo(name="croc", endpoint=host),
-        port=int(port) if port else None,
-        path=path,
-        aws_access_key_id=os.environ['EC2_ACCESS_KEY'],
-        aws_secret_access_key=os.environ['EC2_SECRET_KEY']
-    )
 
-sys.argv.pop(0)
-action = sys.argv.pop(0)
-args = dict(zip(sys.argv[::2], sys.argv[1::2]))
+def parse_args():
+	""" Parse incoming action and arguments as a dictionary for support AWS EC2 API requests format """
+	
+	parser = argparse.ArgumentParser(prog='c2-ec2')
+	parser.add_argument('action', help='The action that you want to perform.')
+	parser.add_argument('parameters', nargs='*', help='Any parameters for the action. Parameters specified by parameter key and parameter value separated by space.')
+	args = parser.parse_args()
+	
+	action = args.action
+	params = args.parameters
+	parameters = dict(zip(params[::2], params[1::2]))
 
-resp = conn.make_request(action, args)
-print parseString(resp.read()).toprettyxml()
-sys.exit(0 if resp.status == 200 else 1)
+	return action, parameters
+
+def main():
+	"""Main function"""
+	
+	configure_boto()
+	action, args = parse_args()
+	response = None
+	try:
+		connection = boto.connect_ec2_endpoint(os.environ["EC2_URL"])
+		response = connection.make_request(action, args)	
+	except Exception as e:
+		print e
+		return False
+	
+	print _response_prettyprint(response.read())
+	return True
+
+if __name__ == "__main__":
+	sys.exit(os.EX_OK if main() else os.EX_SOFTWARE)
