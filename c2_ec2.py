@@ -5,6 +5,7 @@ import boto
 import sys
 import os
 from xml.dom.minidom import parseString
+from boto.exception import BotoServerError
 
 def _response_prettyprint(string):
 	return parseString(string).toprettyxml()
@@ -16,7 +17,7 @@ def configure_boto():
 		boto.config.add_section("Boto")
 	boto.config.set("Boto", "is_secure", "True")
 	boto.config.set("Boto", "num_retries", "0")
-	boto.config.set("Boto", "https_validate_certificates", "True")
+	boto.config.set("Boto", "https_validate_certificates", "False")
 	if not boto.config.has_section("Credentials"):
 		boto.config.add_section("Credentials")
 	boto.config.set("Credentials", "aws_access_key_id", os.environ["EC2_ACCESS_KEY"])
@@ -45,7 +46,10 @@ def main():
 	response = None
 	try:
 		connection = boto.connect_ec2_endpoint(os.environ["EC2_URL"])
-		response = connection.make_request(action, args)	
+		response = connection.make_request(action, args)
+	except BotoServerError as e:
+		print _response_prettyprint(e.body)
+		return False
 	except Exception as e:
 		print e
 		return False
