@@ -4,6 +4,7 @@ import os
 import sys
 import boto
 import argparse
+import datetime
 
 from multiprocessing import Process, Queue
 from xml.dom.minidom import parseString
@@ -28,7 +29,7 @@ def _configure_boto():
 	boto.config.set("Credentials", "aws_secret_access_key", os.environ["EC2_SECRET_KEY"])
 
 
-def make_parallel(action, args, threads):
+def make_parallel(action, args, threads, azs, field):
 	"""Make parallel requests to CROC Cloud."""
 
 	process_pool = []
@@ -36,7 +37,8 @@ def make_parallel(action, args, threads):
 
 	connection = boto.connect_ec2_endpoint(os.environ["EC2_URL"])
 
-	def request_maker(queue):
+	def request_maker(queue, args):
+		print "Start: {0}".format(datetime.datetime.now())
 		try:
 			response = connection.make_request(action, args)
 			response = response.read()
@@ -46,13 +48,15 @@ def make_parallel(action, args, threads):
 		queue.put((response,))
 
 	try:
-		for i in xrange(0, threads):
-			process = Process(target=request_maker, args=(results_queue,))
-			process_pool.append(process)
-			process.start()
+		if azs:
+			process_pool = [ Process(target=request_maker, args=(results_queue, dict(args, **{field:az})),)
+				for i in xrange(0, threads) for az in azs ]
+		else:
+			process_pool = [ Process(target=request_maker, args=(results_queue,args,))
+				for i in xrange(0, threads) ]
+		map(lambda p: p.start(), process_pool)
 	finally:
-		for process in process_pool:
-			process.join()
+		map(lambda p: p.join(), process_pool)
 
 	return [ results_queue.get()[0] for p in process_pool ]
 
@@ -64,26 +68,32 @@ def parse_args():
 	parser = argparse.ArgumentParser(prog="c2-ec2")
 	parser.add_argument("-t", "--threads", metavar="threads", default=1,
 		help="Number of threads to perform request.")
+	parser.add_argument("--azs", metavar="AZ,[AZ,[...]]",
+		help="Comma-separated list of AZs.")
+	parser.add_argument("--az-field", default="AvailabilityZone",
+		help="EC2 AZ request field. Default: 'AvailabilityZone'")
 	parser.add_argument("action", help="The action that you want to perform.")
 	parser.add_argument("parameters", nargs="*", help="Any parameters for the action. \
 		Parameters specified by parameter key and parameter value separated by space.")
 	args = parser.parse_args()
 
+	azs = args.azs.split(",") if args.azs else None
+	az_field = args.az_field
 	threads = int(args.threads)
 	action = args.action
 	params = args.parameters
 	parameters = dict(zip(params[::2], params[1::2]))
 
-	return action, parameters, threads
+	return action, parameters, threads, azs, az_field
 
 
 def main():
 	"""Main function."""
 
 	_configure_boto()
-	action, args, threads = parse_args()
+	action, args, threads, azs, az_field = parse_args()
 
-	responses = make_parallel(action, args, threads)
+	responses = make_parallel(action, args, threads, azs, az_field)
 	for resp in responses:
 		print _response_prettyprint(resp)
 
