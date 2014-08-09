@@ -37,22 +37,36 @@ c2-ec2 <action> <arg1> <value1> <arg2> <value2>
 ### Send simple request
 
 ```
-c2-ec2 RunInstances ImageId cmi-078880A0 Description "Test instance" InstanceType m1.micro MaxCount 1 MinCount 1 SecurityGroup.1 test
+c2-ec2 RunInstances ImageId cmi-078880A0 Description "Test instance" \
+InstanceType m1.micro MaxCount 1 MinCount 1 SecurityGroup.1 test
 ```
 
 ### Send parallel requests
 
-Specify option `--threads` or `-t` and numeber of threads to run request in parallel
+Specify option `--threads` or `-t` and number of threads to run request in parallel.
 
-Run 3 parallel requests for create instance
+Run 3 parallel requests for create instance:
 ```
-c2-ec2 --threads 3 RunInstances ImageId cmi-078880A0 Description "Test instance" InstanceType m1.micro MaxCount 1 MinCount 1 SecurityGroup.1 test
+c2-ec2 --threads 3 RunInstances ImageId cmi-078880A0 Description "Test instance" \
+InstanceType m1.micro MaxCount 1 MinCount 1 SecurityGroup.1 test
 ```
 
 ### Send request to specified AZ
 
-Specify option `--azs` and `--az-field` for send request to AZ
+Specify option `--azs` and `--az-field` for send request to AZ.
 
+Run one request for create instance in specified AZ:
 ```
-c2-ec2 --azs devel-az1 --az-field Placement.AvailabilityZone RunInstances ImageId cmi-078880A0 Description "Test instance" InstanceType m1.micro MaxCount 1 MinCount 1 SecurityGroup.1 test
+c2-ec2 --azs devel-az1 --az-field Placement.AvailabilityZone \
+RunInstances ImageId cmi-078880A0 Description "Test instance" \
+InstanceType m1.micro MaxCount 1 MinCount 1 SecurityGroup.1 test
+```
+
+If you specify several AZs the requests become parallel to this AZs:
+
+Run instances in different AZs:
+```
+c2-ec2 --azs devel-az1,devel-az2 --az-field Placement.AvailabilityZone \
+RunInstances ImageId cmi-078880A0 Description "Test instance" \
+InstanceType m1.micro MaxCount 1 MinCount 1 SecurityGroup.1 test
 ```
