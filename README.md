@@ -1,7 +1,10 @@
 # C2 EC2 API Client
 
-Simple client for sending custom requests to CROC Cloud platform.
+Simple command-line utility for sending custom requests to CROC Cloud platform.
 You may send requests in parallel and specify Availability Zones.
+
+**Warning: this utility is not intended for automation cases.
+Use https://github.com/C2Devel/boto.git and python scripts instead.**
 
 ## Requirements
 
@@ -10,63 +13,57 @@ You may send requests in parallel and specify Availability Zones.
 
 ## Usage
 
-```
-miushanov@think-x220:~/Documents/projects/c2-api-client$ ./c2-ec2 --help
-usage: c2-ec2 [-h] [-t threads] [--azs AZ,[AZ,[...]]] [--az-field AZ_FIELD]
-              action [parameters [parameters ...]]
+    $ c2-ec2 --help
+    usage: c2-ec2 [-h] [-t threads] [--azs AZ,[AZ,[...]]] [--az-field AZ_FIELD]
+                  action [parameters [parameters ...]]
 
-positional arguments:
-  action                The action that you want to perform.
-  parameters            Any parameters for the action. Parameters specified by
-                        parameter key and parameter value separated by space.
+    positional arguments:
+      action                The action that you want to perform.
+      parameters            Any parameters for the action. Parameters specified by
+                            parameter key and parameter value separated by space.
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -t threads, --threads threads
-                        Number of threads to perform request.
-  --azs AZ,[AZ,[...]]   Comma-separated list of AZs.
-  --az-field AZ_FIELD   EC2 AZ request field. Default: 'AvailabilityZone'
-```
+    optional arguments:
+      -h, --help            show this help message and exit
+      -t threads, --threads threads
+                            Number of threads to perform request.
+      --azs AZ,[AZ,[...]]   Comma-separated list of AZs.
+      --az-field AZ_FIELD   EC2 AZ request field. Default: 'AvailabilityZone'
 
 ## Examples
 
-```
-c2-ec2 <action> <arg1> <value1> <arg2> <value2>
-```
+1. Common syntax:
 
-### Send simple request
+    ```
+    c2-ec2 <action> <arg1> <value1> <arg2> <value2>
+    ```
 
-```
-c2-ec2 RunInstances ImageId cmi-078880A0 Description "Test instance" \
-InstanceType m1.micro MaxCount 1 MinCount 1 SecurityGroup.1 test
-```
+1. Send simple request
 
-### Send parallel requests
+    ```
+    c2-ec2 RunInstances ImageId cmi-078880A0 Description "Test instance" \
+    InstanceType m1.small MaxCount 1 MinCount 1 SecurityGroup.1 test
+    ```
 
-Specify option `--threads` or `-t` and number of threads to run request in parallel.
+1. To send requests in parallel specify option `--threads` or `-t` and number of threads. Run 3 parallel requests for create instance:
 
-Run 3 parallel requests for create instance:
-```
-c2-ec2 --threads 3 RunInstances ImageId cmi-078880A0 Description "Test instance" \
-InstanceType m1.micro MaxCount 1 MinCount 1 SecurityGroup.1 test
-```
+    ```
+    c2-ec2 --threads 3 RunInstances ImageId cmi-078880A0 Description "Test instance" \
+    InstanceType m1.small MaxCount 1 MinCount 1 SecurityGroup.1 test
+    ```
 
-### Send request to specified AZ
+1. To send requests to specified AZ add options `--azs` and `--az-field`.
+  1. Run one request to create instance in specified AZ:
 
-Specify option `--azs` and `--az-field` for send request to AZ.
+    ```
+    c2-ec2 --azs ru-msk-comp1 --az-field Placement.AvailabilityZone \
+    RunInstances ImageId cmi-078880A0 Description "Test instance" \
+    InstanceType m1.small MaxCount 1 MinCount 1 SecurityGroup.1 test
+    ```
 
-Run one request for create instance in specified AZ:
-```
-c2-ec2 --azs devel-az1 --az-field Placement.AvailabilityZone \
-RunInstances ImageId cmi-078880A0 Description "Test instance" \
-InstanceType m1.micro MaxCount 1 MinCount 1 SecurityGroup.1 test
-```
+  1. Specifing several AZs in CLI will cause parallel requests to these AZs (running instances in different AZs):
 
-If you specify several AZs the requests become parallel to this AZs:
-
-Run instances in different AZs:
-```
-c2-ec2 --azs devel-az1,devel-az2 --az-field Placement.AvailabilityZone \
-RunInstances ImageId cmi-078880A0 Description "Test instance" \
-InstanceType m1.micro MaxCount 1 MinCount 1 SecurityGroup.1 test
-```
+    ```
+    c2-ec2 --azs ru-msk-comp1,ru-msk-vol51 --az-field Placement.AvailabilityZone \
+    RunInstances ImageId cmi-078880A0 Description "Test instance" \
+    InstanceType m1.small MaxCount 1 MinCount 1 SecurityGroup.1 test
+    ```
