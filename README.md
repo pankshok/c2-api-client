@@ -6,10 +6,13 @@ You may send requests in parallel and specify Availability Zones.
 **Warning: this utility is not intended for automation cases.
 Use https://github.com/C2Devel/boto.git and python scripts instead.**
 
-## Requirements
+## Installation
 
-* python >= 2.6
-* boto
+* Using pip:
+
+```
+pip install https://github.com/C2Devel/c2-api-client.git
+```
 
 ## Usage
 
