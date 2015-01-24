@@ -44,13 +44,6 @@ Use https://github.com/C2Devel/boto.git and python scripts instead.**
     InstanceType m1.small MaxCount 1 MinCount 1 SecurityGroup.1 test
     ```
 
-1. To send requests in parallel specify option `--threads` or `-t` and number of threads. Run 3 parallel requests for create instance:
-
-    ```
-    c2-ec2 --threads 3 RunInstances ImageId cmi-078880A0 Description "Test instance" \
-    InstanceType m1.small MaxCount 1 MinCount 1 SecurityGroup.1 test
-    ```
-
 1. To send requests to specified AZ add options `--azs` and `--az-field`.
   1. Run one request to create instance in specified AZ:
 
