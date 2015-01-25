@@ -19,4 +19,4 @@ sources: clean
 		$(shell git rev-parse --verify HEAD) | gzip > "$(PACKAGE)-$(VERSION).tar.gz"
 
 clean:
-	@rm -rf build $(PROJECT).egg-info $(PACKAGE)-*.tar.gz *.egg
+	@rm -rf build dist $(PROJECT).egg-info $(PACKAGE)-*.tar.gz *.egg

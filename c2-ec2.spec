@@ -17,7 +17,10 @@ BuildArch:     noarch
 BuildRequires: python2-devel
 BuildRequires: python-setuptools
 
-Requires: python-argparse python-boto
+Requires: python-setuptools python-boto
+%if 0%{?rhel} == 6
+Requires: python-argparse
+%endif
 
 %description
 Simple command-line utility for sending custom requests to CROC Cloud platform.
