@@ -8,7 +8,6 @@ import datetime
 
 from multiprocessing import Process, Queue
 from xml.dom.minidom import parseString
-from boto.exception import BotoServerError
 
 
 def _response_prettyprint(string):
@@ -49,10 +48,10 @@ def make_parallel(action, args, threads, azs, field):
 
 	try:
 		if azs:
-			process_pool = [ Process(target=request_maker, args=(results_queue, dict(args, **{field:az})),)
+			process_pool = [ Process(target=request_maker, args=(results_queue, dict(args, **{field: az})),)
 				for i in xrange(0, threads) for az in azs ]
 		else:
-			process_pool = [ Process(target=request_maker, args=(results_queue,args,))
+			process_pool = [ Process(target=request_maker, args=(results_queue, args,))
 				for i in xrange(0, threads) ]
 		map(lambda p: p.start(), process_pool)
 	finally:
