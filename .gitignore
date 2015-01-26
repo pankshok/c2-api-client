@@ -2,4 +2,6 @@
 build/
 c2_ec2.egg-info/
 dist/
+rpm/
 *.tar.gz
+*.src.rpm
