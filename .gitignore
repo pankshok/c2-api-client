@@ -2,3 +2,4 @@
 build/
 c2_ec2.egg-info/
 dist/
+*.tar.gz
