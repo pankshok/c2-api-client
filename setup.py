@@ -19,7 +19,7 @@ if sys.version_info[0] == 2 and sys.version_info[1] <= 6:
 
 setup(
 	name="c2-ec2",
-	version="0.0.1",
+	version="0.1.1",
 	author="CROC",
 	author_email="devel@croc.ru",
 	description="Simple command-line utility for sending custom requests to CROC Cloud platform.",
