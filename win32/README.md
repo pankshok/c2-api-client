@@ -13,4 +13,4 @@
 
 `robocopy /S /E "C:/Python27/Lib/site-packages/boto" "./build/exe.win32-2.7/boto"`
 
-`python setup.py bdist_msi`
+`python setup.py bdist_msi --add-to-path yes`
