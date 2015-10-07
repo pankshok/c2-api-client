@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#-*- coding: utf-8 -*-
 
 import os
 import sys
@@ -21,7 +22,7 @@ else:
 
 
 def _response_prettyprint(string):
-	return parseString(string).toprettyxml()
+	return parseString(string).toprettyxml(encoding="utf-8")
 
 
 def _configure_boto():
@@ -73,7 +74,15 @@ def main():
 	action, args = parse_args()
 	response = make_request(action, args)
 
-	print(_response_prettyprint(response))
+	if sys.platform == "win32":
+		import msvcrt
+		msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
+		lines = "\r\n".join(map(str, _response_prettyprint(response).splitlines()))
+		os.write(sys.stdout.fileno(), bytes(lines))
+		os.write(sys.stdout.fileno(), "\r\n")
+	else:
+		print(_response_prettyprint(response))
+
 	return True
 
 
